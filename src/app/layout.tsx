@@ -1,13 +1,38 @@
 import { cn } from "@/lib/utils";
 import { GeistMono } from "geist/font/mono";
 import { GeistSans } from "geist/font/sans";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/sonner";
+import { AppShell } from "@/components/app-shell";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Preview | Giga Studio",
-  description: "Next.js 16 template with TypeScript, shadcn/ui, and Tailwind CSS",
+  title: "Ежедневник адвоката",
+  description:
+    "Офлайн-ежедневник адвоката: уголовные дела по назначению, календарь, задания и события, резервные копии.",
+  applicationName: "Ежедневник адвоката",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Ежедневник",
+  },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-192.png",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6f9" },
+    { media: "(prefers-color-scheme: dark)", color: "#0d131c" },
+  ],
 };
 
 export default function RootLayout({
@@ -30,7 +55,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AppShell>{children}</AppShell>
+          <PwaRegister />
+          <Toaster position="top-center" />
         </ThemeProvider>
       </body>
     </html>
