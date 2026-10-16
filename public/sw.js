@@ -1,4 +1,4 @@
-const CACHE = "adv-diary-v1";
+const CACHE = "adv-diary-v2";
 const PAGES = ["/", "/cases", "/report"];
 const ASSETS = [
   "/manifest.webmanifest",
@@ -41,36 +41,26 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
 
-  // Страницы: сеть в приоритете, офлайн — кэш
-  if (req.headers.get("accept")?.includes("text/html")) {
-    event.respondWith(
-      fetch(req)
-        .then((res) => {
+  // Сеть в приоритете для всего: пользователь всегда получает актуальную версию.
+  // Кэш используется только офлайн — иначе в превью и установленном PWA
+  // может показаться устаревший снапшот приложения.
+  event.respondWith(
+    fetch(req)
+      .then((res) => {
+        if (res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then((cache) => cache.put(req, copy));
-          return res;
-        })
-        .catch(() =>
-          caches
-            .match(req)
-            .then((hit) => hit || caches.match("/"))
+        }
+        return res;
+      })
+      .catch(() =>
+        caches.match(req).then(
+          (hit) =>
+            hit ||
+            (req.headers.get("accept")?.includes("text/html")
+              ? caches.match("/")
+              : undefined)
         )
-    );
-    return;
-  }
-
-  // Ресурсы: кэш в приоритете, обновление в фоне
-  event.respondWith(
-    caches.match(req).then(
-      (hit) =>
-        hit ||
-        fetch(req).then((res) => {
-          if (res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(req, copy));
-          }
-          return res;
-        })
-    )
+      )
   );
 });
