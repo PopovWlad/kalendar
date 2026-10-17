@@ -170,7 +170,7 @@ function ItemRow({
           {linked ? (
             <span className="truncate">
               Дело: {linked.defender}
-              {linked.caseNumber ? ` · № ${linked.caseNumber}` : ""}
+              {linked.address ? ` · адрес: ${linked.address}` : ""}
             </span>
           ) : (
             <span>без дела</span>

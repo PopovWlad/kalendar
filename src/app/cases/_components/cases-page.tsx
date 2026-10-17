@@ -54,7 +54,7 @@ export function CasesPage() {
       .filter((c) => (showFinished ? c.status === "finished" : c.status === "active"))
       .filter((c) =>
         q
-          ? [c.defender, c.category, c.article, c.caseNumber, c.orderNumber, c.authority]
+          ? [c.defender, c.category, c.article, c.address, c.orderNumber, c.authority]
               .join(" ")
               .toLowerCase()
               .includes(q)
@@ -135,7 +135,7 @@ export function CasesPage() {
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold">{c.defender}</div>
                   <div className="mt-0.5 truncate text-xs text-muted-foreground">
-                    {[c.article, c.caseNumber && `дело № ${c.caseNumber}`, c.orderNumber && `ордер № ${c.orderNumber}`]
+                    {[c.article, c.address && `адрес: ${c.address}`, c.orderNumber && `ордер № ${c.orderNumber}`]
                       .filter(Boolean)
                       .join(" · ") || "данные не заполнены"}
                   </div>
@@ -187,7 +187,7 @@ export function CasesPage() {
               <dl className="rounded-lg border p-3">
                 <Row label="Категория" value={viewing.category} />
                 <Row label="Статья" value={viewing.article} />
-                <Row label="Номер дела" value={viewing.caseNumber} />
+                <Row label="Адрес / кабинет" value={viewing.address} />
                 <Row label="Ордер" value={[viewing.orderNumber, viewing.orderDate && format(parseISO(viewing.orderDate), "d MMMM yyyy", { locale: ru })].filter(Boolean).join(" от ")} />
                 <Row label="Орган" value={viewing.authority} />
                 <Row label="Следователь / судья" value={viewing.authorityWorker} />

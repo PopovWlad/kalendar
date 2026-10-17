@@ -197,7 +197,7 @@ export function TaskDialog({
                   {cases.map((c) => (
                     <SelectItem key={c.id} value={c.id}>
                       {c.defender}
-                      {c.caseNumber ? ` · дело ${c.caseNumber}` : ""}
+                      {c.address ? ` · ${c.address}` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>

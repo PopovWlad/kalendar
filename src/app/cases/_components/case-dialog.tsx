@@ -35,7 +35,7 @@ const EMPTY_FORM = {
   defender: "",
   category: "",
   article: "",
-  caseNumber: "",
+  address: "",
   orderNumber: "",
   orderDate: "",
   authority: "",
@@ -56,7 +56,7 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
         defender: initial.defender,
         category: initial.category,
         article: initial.article,
-        caseNumber: initial.caseNumber,
+        address: initial.address,
         orderNumber: initial.orderNumber,
         orderDate: initial.orderDate,
         authority: initial.authority,
@@ -84,7 +84,7 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
       defender: form.defender.trim(),
       category: form.category,
       article: form.article.trim(),
-      caseNumber: form.caseNumber.trim(),
+      address: form.address,
       orderNumber: form.orderNumber.trim(),
       orderDate: form.orderDate,
       authority: form.authority.trim(),
@@ -165,25 +165,14 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label htmlFor="case-article">Статья УК</Label>
-              <Input
-                id="case-article"
-                placeholder="ч. 2 ст. 158 УК РФ"
-                value={form.article}
-                onChange={(e) => patch({ article: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="case-number">Номер дела</Label>
-              <Input
-                id="case-number"
-                placeholder="12001450005001234"
-                value={form.caseNumber}
-                onChange={(e) => patch({ caseNumber: e.target.value })}
-              />
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="case-article">Статья УК</Label>
+            <Input
+              id="case-article"
+              placeholder="ч. 2 ст. 158 УК РФ"
+              value={form.article}
+              onChange={(e) => patch({ article: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -226,6 +215,16 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
                 onChange={(e) => patch({ authorityWorker: e.target.value })}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="case-address">Адрес / кабинет №</Label>
+            <Input
+              id="case-address"
+              placeholder="ул. Ленина, д. 5, каб. 312"
+              value={form.address}
+              onChange={(e) => patch({ address: e.target.value })}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
