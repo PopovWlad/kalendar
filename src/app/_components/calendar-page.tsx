@@ -231,7 +231,7 @@ export function CalendarPage() {
       const entry = map.get(t.date) ?? { undone: 0, events: 0, any: 0 };
       entry.any += 1;
       if (t.kind === "event") entry.events += 1;
-      if (!t.done) entry.undone += 1;
+      if (t.kind === "task" && !t.done) entry.undone += 1;
       map.set(t.date, entry);
     }
     return map;
