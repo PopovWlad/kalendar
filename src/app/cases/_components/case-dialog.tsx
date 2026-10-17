@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,6 +44,67 @@ const EMPTY_FORM = {
   phone: "",
   notes: "",
 };
+
+/** Кнопка выбора контакта через Contact Picker API (Android Chrome). */
+function PickContactButton({
+  onPick,
+}: {
+  onPick: (name: string, tel: string) => void;
+}) {
+  const supported =
+    typeof navigator !== "undefined" &&
+    "contacts" in navigator &&
+    "ContactsManager" in window;
+
+  const handlePick = useCallback(async () => {
+    try {
+      const contacts = await (navigator.contacts as any).select(["name", "tel"], {
+        multiple: false,
+      });
+      if (contacts?.length > 0) {
+        const c = contacts[0];
+        const name = c.name?.[0] ?? "";
+        const tel = c.tel?.[0] ?? "";
+        if (tel) onPick(name, tel);
+        else toast.error("В выбранном контакте нет номера телефона");
+      }
+    } catch (e: any) {
+      if (e?.name !== "NotAllowedError" && e?.name !== "AbortError") {
+        toast.error("Не удалось открыть контакты");
+      }
+    }
+  }, [onPick]);
+
+  if (!supported) return null;
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      onClick={handlePick}
+      title="Выбрать из контактов"
+      className="shrink-0"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    </Button>
+  );
+}
 
 export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogProps) {
   const [form, setForm] = useState(EMPTY_FORM);
@@ -239,13 +300,24 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
             </div>
             <div className="space-y-2">
               <Label htmlFor="case-phone">Телефон</Label>
-              <Input
-                id="case-phone"
-                type="tel"
-                placeholder="+7 900 000-00-00"
-                value={form.phone}
-                onChange={(e) => patch({ phone: e.target.value })}
-              />
+              <div className="flex gap-2">
+                <Input
+                  id="case-phone"
+                  type="tel"
+                  placeholder="+7 900 000-00-00"
+                  value={form.phone}
+                  onChange={(e) => patch({ phone: e.target.value })}
+                  className="flex-1"
+                />
+                <PickContactButton
+                  onPick={(name, tel) => {
+                    patch({ phone: tel });
+                    if (!form.defender.trim() && name) {
+                      patch({ defender: name });
+                    }
+                  }}
+                />
+              </div>
             </div>
           </div>
 

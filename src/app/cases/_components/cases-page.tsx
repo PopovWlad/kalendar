@@ -29,6 +29,26 @@ import { deleteCase, saveCase, useAppData } from "@/lib/store";
 import type { CaseFile } from "@/lib/types";
 import { CaseDialog } from "./case-dialog";
 
+/** Сгенерировать vCard и скачать. */
+function downloadVcf(defender: string, phone: string) {
+  const lines = [
+    "BEGIN:VCARD",
+    "VERSION:3.0",
+    `FN:${defender}`,
+    `TEL;TYPE=CELL:${phone}`,
+    "END:VCARD",
+  ];
+  const blob = new Blob([lines.join("\r\n")], { type: "text/vcard;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `${defender.replace(/\s+/g, "_")}.vcf`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 function Row({ label, value }: { label: string; value?: string }) {
   if (!value) return null;
   return (
@@ -47,6 +67,7 @@ export function CasesPage() {
   const [editing, setEditing] = useState<CaseFile | null>(null);
   const [viewing, setViewing] = useState<CaseFile | null>(null);
   const [deleting, setDeleting] = useState<CaseFile | null>(null);
+  const [savedContact, setSavedContact] = useState<{ defender: string; phone: string } | null>(null);
 
   const list = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -255,6 +276,10 @@ export function CasesPage() {
           saveCase(c);
           setFormOpen(false);
           toast.success(editing ? "Изменения сохранены" : "Дело добавлено");
+          // Предложить сохранить контакт, если номер новый и не было редактирования
+          if (!editing && c.phone.trim()) {
+            setSavedContact({ defender: c.defender, phone: c.phone });
+          }
         }}
       />
 
@@ -268,6 +293,20 @@ export function CasesPage() {
         onAction={() => {
           if (deleting) removeCase(deleting);
           setDeleting(null);
+        }}
+      />
+
+      {/* Диалог сохранения контакта */}
+      <ConfirmDialog
+        open={savedContact !== null}
+        onOpenChange={(open) => !open && setSavedContact(null)}
+        title="Номер сохранён"
+        description={`Внести контакт «${savedContact?.defender ?? ""}» в записную книжку телефона?`}
+        actionLabel="💾 Внести в контакты"
+        onAction={() => {
+          if (savedContact) downloadVcf(savedContact.defender, savedContact.phone);
+          setSavedContact(null);
+          toast.success("Файл контакта скачан. Откройте его, чтобы добавить в телефонную книгу");
         }}
       />
     </div>
