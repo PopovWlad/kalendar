@@ -398,40 +398,6 @@ export function CalendarPage() {
           </div>
         )}
 
-        {/* Даты выбранной недели */}
-        <div className="mt-2 grid grid-cols-7 gap-1">
-          {weekDays.map((day, idx) => {
-            const key = format(day, "yyyy-MM-dd");
-            const isSelected = key === selected;
-            return (
-              <button
-                key={key}
-                type="button"
-                onClick={() => {
-                  setSelected(key);
-                  setCursor(startOfMonth(day));
-                  if (view === "year") setView("month");
-                }}
-                aria-label={format(day, "EEEEEE, d MMMM", { locale: ru })}
-                aria-pressed={isSelected}
-                className={cn(
-                  "flex flex-col items-center rounded-lg py-1.5 transition-colors",
-                  idx >= 5 && !isSelected && "text-muted-foreground",
-                  isSelected
-                    ? "bg-primary font-semibold text-primary-foreground"
-                    : "hover:bg-accent",
-                  isToday(day) && !isSelected && "ring-1 ring-inset ring-gold"
-                )}
-              >
-                <span className="text-[10px] uppercase tracking-wide opacity-80">
-                  {WEEKDAYS[idx]}
-                </span>
-                <span className="text-sm font-medium">{day.getDate()}</span>
-              </button>
-            );
-          })}
-        </div>
-
         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
@@ -482,7 +448,10 @@ export function CalendarPage() {
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <h2 className="text-sm font-semibold capitalize">
-            {format(weekDays[0], "d MMMM", { locale: ru })} – {format(weekDays[6], "d MMMM", { locale: ru })}
+            {format(weekDays[0], "d MMMM", { locale: ru })}
+            {weekDays[0].getFullYear() !== weekDays[6].getFullYear()
+              ? ` ${format(weekDays[0], "yyyy", { locale: ru })}`
+              : ""} – {format(weekDays[6], "d MMMM yyyy", { locale: ru })}
           </h2>
           <span className="whitespace-nowrap text-xs text-muted-foreground">
             всего: {weekItems.length}
