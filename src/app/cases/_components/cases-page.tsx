@@ -54,7 +54,7 @@ export function CasesPage() {
       .filter((c) => (showFinished ? c.status === "finished" : c.status === "active"))
       .filter((c) =>
         q
-          ? [c.defender, c.article, c.caseNumber, c.orderNumber, c.authority]
+          ? [c.defender, c.category, c.article, c.caseNumber, c.orderNumber, c.authority]
               .join(" ")
               .toLowerCase()
               .includes(q)
@@ -140,9 +140,16 @@ export function CasesPage() {
                       .join(" · ") || "данные не заполнены"}
                   </div>
                 </div>
-                <span className="shrink-0 rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
-                  назначение
-                </span>
+                <div className="flex shrink-0 items-center gap-1.5">
+                  {c.category ? (
+                    <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
+                      {c.category}
+                    </span>
+                  ) : null}
+                  <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary-foreground">
+                    назначение
+                  </span>
+                </div>
               </div>
               {c.authority ? (
                 <div className="mt-1.5 flex items-center gap-1 text-xs text-muted-foreground">
@@ -178,6 +185,7 @@ export function CasesPage() {
               </DialogHeader>
 
               <dl className="rounded-lg border p-3">
+                <Row label="Категория" value={viewing.category} />
                 <Row label="Статья" value={viewing.article} />
                 <Row label="Номер дела" value={viewing.caseNumber} />
                 <Row label="Ордер" value={[viewing.orderNumber, viewing.orderDate && format(parseISO(viewing.orderDate), "d MMMM yyyy", { locale: ru })].filter(Boolean).join(" от ")} />

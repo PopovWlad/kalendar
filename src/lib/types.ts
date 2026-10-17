@@ -7,6 +7,7 @@ export interface CaseFile {
   id: string;
   kind: CaseKind;
   defender: string; // ФИО подзащитного
+  category: string; // категория дела: Дознание / Следствие / Суд
   article: string; // статья УК / предмет дела
   caseNumber: string; // номер дела
   orderNumber: string; // номер ордера

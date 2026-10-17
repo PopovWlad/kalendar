@@ -33,6 +33,7 @@ interface CaseDialogProps {
 const EMPTY_FORM = {
   kind: "appointment" as CaseKind,
   defender: "",
+  category: "",
   article: "",
   caseNumber: "",
   orderNumber: "",
@@ -53,6 +54,7 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
       setForm({
         kind: initial.kind,
         defender: initial.defender,
+        category: initial.category,
         article: initial.article,
         caseNumber: initial.caseNumber,
         orderNumber: initial.orderNumber,
@@ -80,6 +82,7 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
       id: initial?.id ?? crypto.randomUUID(),
       kind: form.kind,
       defender: form.defender.trim(),
+      category: form.category,
       article: form.article.trim(),
       caseNumber: form.caseNumber.trim(),
       orderNumber: form.orderNumber.trim(),
@@ -146,6 +149,20 @@ export function CaseDialog({ open, onOpenChange, initial, onSave }: CaseDialogPr
               value={form.defender}
               onChange={(e) => patch({ defender: e.target.value })}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="case-category">Категория дела</Label>
+            <Select value={form.category} onValueChange={(v) => patch({ category: v })}>
+              <SelectTrigger id="case-category">
+                <SelectValue placeholder="Выберите категорию" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Дознание">Дознание</SelectItem>
+                <SelectItem value="Следствие">Следствие</SelectItem>
+                <SelectItem value="Суд">Суд</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
