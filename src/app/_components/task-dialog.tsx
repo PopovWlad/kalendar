@@ -150,7 +150,7 @@ export function TaskDialog({
                 <datalist id="title-presets">
                   <option value="Судебное заседание" />
                   <option value="Следственное действие" />
-                  <option value="Иное" />
+                  <option label="Иное" value="" />
                 </datalist>
               ) : null}
             </div>
