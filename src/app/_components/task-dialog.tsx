@@ -139,10 +139,16 @@ export function TaskDialog({
               <Label htmlFor="item-title">Название *</Label>
               <Input
                 id="item-title"
-                placeholder={form.kind === "task" ? "Например, ознакомиться с материалами" : "Например, заседание в суде"}
+                list="title-presets"
+                placeholder="Например, заседание в суде"
                 value={form.title}
                 onChange={(e) => patch({ title: e.target.value })}
               />
+              <datalist id="title-presets">
+                <option value="Судебное заседание" />
+                <option value="Следственное действие" />
+                <option value="Иное" />
+              </datalist>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
