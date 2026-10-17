@@ -130,8 +130,8 @@ export function TaskDialog({
           </DialogHeader>
 
           <div className="flex gap-2">
-            {kindBtn("task", "Задание")}
             {kindBtn("event", "Событие")}
+            {kindBtn("task", "Задание")}
           </div>
 
           <div className="space-y-4">
