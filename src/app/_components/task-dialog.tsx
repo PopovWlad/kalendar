@@ -144,13 +144,13 @@ export function TaskDialog({
                 list={form.kind === "event" ? "title-presets" : undefined}
                 placeholder={form.kind === "task" ? "Например, ознакомиться с материалами" : "Например, заседание в суде"}
                 value={form.title}
-                onChange={(e) => patch({ title: e.target.value })}
+                onChange={(e) => patch({ title: e.target.value === "Иное" ? "" : e.target.value })}
               />
               {form.kind === "event" ? (
                 <datalist id="title-presets">
                   <option value="Судебное заседание" />
                   <option value="Следственное действие" />
-                  <option label="Иное" value="" />
+                  <option value="Иное" />
                 </datalist>
               ) : null}
             </div>
