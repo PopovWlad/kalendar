@@ -36,7 +36,7 @@ interface TaskDialogProps {
 }
 
 const EMPTY_FORM = {
-  kind: "task" as ItemKind,
+  kind: "event" as ItemKind,
   title: "",
   date: "",
   time: "",
