@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import {
+  addDays,
   addMonths,
   addYears,
   eachDayOfInterval,
@@ -32,7 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { deleteTask, saveTask, useAppData } from "@/lib/store";
-import type { ItemKind, TaskItem } from "@/lib/types";
+import type { CaseFile, ItemKind, TaskItem } from "@/lib/types";
 import { TaskDialog } from "./task-dialog";
 
 const WEEKDAYS = ["пн", "вт", "ср", "чт", "пт", "сб", "вс"];
@@ -114,6 +115,84 @@ function MiniMonth({
   );
 }
 
+function ItemRow({
+  item,
+  linked,
+  onToggle,
+  onEdit,
+}: {
+  item: TaskItem;
+  linked?: CaseFile;
+  onToggle: (item: TaskItem) => void;
+  onEdit: (item: TaskItem) => void;
+}) {
+  return (
+    <li
+      className={cn(
+        "flex items-start gap-3 rounded-xl border bg-card p-3 shadow-sm transition-opacity",
+        item.done && "opacity-60"
+      )}
+    >
+      <Checkbox
+        checked={item.done}
+        onCheckedChange={() => onToggle(item)}
+        aria-label="Отметить выполненным"
+        className="mt-0.5 h-5 w-5"
+      />
+      <button
+        type="button"
+        className="min-w-0 flex-1 text-left"
+        onClick={() => onEdit(item)}
+      >
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+          <span
+            className={cn(
+              "text-sm font-medium",
+              item.done && "line-through decoration-muted-foreground"
+            )}
+          >
+            {item.title}
+          </span>
+          <span
+            className={cn(
+              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+              item.kind === "task"
+                ? "bg-gold/15 text-gold"
+                : "bg-sky-500/15 text-sky-600 dark:text-sky-400"
+            )}
+          >
+            {item.kind === "task" ? (
+              <ListChecks className="h-3 w-3" />
+            ) : (
+              <CalendarClock className="h-3 w-3" />
+            )}
+            {item.kind === "task" ? "задание" : "событие"}
+          </span>
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+          {item.time ? <span>{item.time}</span> : null}
+          {item.place ? (
+            <span className="inline-flex items-center gap-1">
+              <MapPin className="h-3 w-3" /> {item.place}
+            </span>
+          ) : null}
+          {linked ? (
+            <span className="truncate">
+              Дело: {linked.defender}
+              {linked.caseNumber ? ` · № ${linked.caseNumber}` : ""}
+            </span>
+          ) : (
+            <span>без дела</span>
+          )}
+        </div>
+        {item.notes ? (
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.notes}</p>
+        ) : null}
+      </button>
+    </li>
+  );
+}
+
 export function CalendarPage() {
   const { cases, tasks } = useAppData();
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
@@ -135,6 +214,11 @@ export function CalendarPage() {
     return eachDayOfInterval({ start, end });
   }, [cursor]);
 
+  const weekDays = useMemo(() => {
+    const start = startOfWeek(parseISO(selected), { weekStartsOn: 1 });
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
+  }, [selected]);
+
   const yearMonths = useMemo(
     () =>
       Array.from({ length: 12 }, (_, i) => new Date(cursor.getFullYear(), i, 1)),
@@ -153,15 +237,28 @@ export function CalendarPage() {
     return map;
   }, [tasks]);
 
-  const dayItems = useMemo(() => {
-    const items = tasks
-      .filter((t) => t.date === selected)
+  const weekItems = useMemo(() => {
+    const keys = new Set(weekDays.map((d) => format(d, "yyyy-MM-dd")));
+    return tasks
+      .filter((t) => keys.has(t.date))
       .filter((t) => filter === "all" || t.kind === filter)
-      .sort((a, b) => (a.time ?? "99:99").localeCompare(b.time ?? "99:99"));
-    return items;
-  }, [tasks, selected, filter]);
+      .sort(
+        (a, b) =>
+          a.date.localeCompare(b.date) ||
+          (a.time ?? "99:99").localeCompare(b.time ?? "99:99")
+      );
+  }, [tasks, weekDays, filter]);
 
-  const counters = byDate.get(selected);
+  const weekGroups = useMemo(
+    () =>
+      weekDays.map((day) => {
+        const key = format(day, "yyyy-MM-dd");
+        return { day, key, items: weekItems.filter((t) => t.date === key) };
+      }),
+    [weekDays, weekItems]
+  );
+
+  const undoneCount = weekItems.filter((t) => !t.done).length;
 
   const toggleDone = (item: TaskItem) => {
     saveTask({
@@ -301,6 +398,40 @@ export function CalendarPage() {
           </div>
         )}
 
+        {/* Даты выбранной недели */}
+        <div className="mt-2 grid grid-cols-7 gap-1">
+          {weekDays.map((day, idx) => {
+            const key = format(day, "yyyy-MM-dd");
+            const isSelected = key === selected;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => {
+                  setSelected(key);
+                  setCursor(startOfMonth(day));
+                  if (view === "year") setView("month");
+                }}
+                aria-label={format(day, "EEEEEE, d MMMM", { locale: ru })}
+                aria-pressed={isSelected}
+                className={cn(
+                  "flex flex-col items-center rounded-lg py-1.5 transition-colors",
+                  idx >= 5 && !isSelected && "text-muted-foreground",
+                  isSelected
+                    ? "bg-primary font-semibold text-primary-foreground"
+                    : "hover:bg-accent",
+                  isToday(day) && !isSelected && "ring-1 ring-inset ring-gold"
+                )}
+              >
+                <span className="text-[10px] uppercase tracking-wide opacity-80">
+                  {WEEKDAYS[idx]}
+                </span>
+                <span className="text-sm font-medium">{day.getDate()}</span>
+              </button>
+            );
+          })}
+        </div>
+
         <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-muted-foreground">
           <div className="flex items-center gap-4">
             <span className="flex items-center gap-1.5">
@@ -347,18 +478,16 @@ export function CalendarPage() {
         </div>
       </section>
 
-      {/* Выбранный день */}
+      {/* События и задания за выбранную неделю */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
           <h2 className="text-sm font-semibold capitalize">
-            {format(parseISO(selected), "d MMMM, EEEE", { locale: ru })}
+            {format(weekDays[0], "d MMMM", { locale: ru })} – {format(weekDays[6], "d MMMM", { locale: ru })}
           </h2>
-          {counters ? (
-            <span className="text-xs text-muted-foreground">
-              всего: {counters.any}
-              {counters.undone ? ` · не выполнено: ${counters.undone}` : ""}
-            </span>
-          ) : null}
+          <span className="whitespace-nowrap text-xs text-muted-foreground">
+            всего: {weekItems.length}
+            {undoneCount ? ` · не выполнено: ${undoneCount}` : ""}
+          </span>
         </div>
 
         <div className="flex gap-2">
@@ -385,84 +514,47 @@ export function CalendarPage() {
           ))}
         </div>
 
-        {dayItems.length === 0 ? (
+        {weekItems.length === 0 ? (
           <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
-            На этот день ничего нет.
+            На эту неделю ничего нет.
             <br />
             Нажмите «+», чтобы добавить задание или событие.
           </div>
         ) : (
-          <ul className="space-y-2">
-            {dayItems.map((item) => {
-              const linked = item.caseId ? caseById.get(item.caseId) : undefined;
-              return (
-                <li
-                  key={item.id}
-                  className={cn(
-                    "flex items-start gap-3 rounded-xl border bg-card p-3 shadow-sm transition-opacity",
-                    item.done && "opacity-60"
-                  )}
-                >
-                  <Checkbox
-                    checked={item.done}
-                    onCheckedChange={() => toggleDone(item)}
-                    aria-label="Отметить выполненным"
-                    className="mt-0.5 h-5 w-5"
-                  />
-                  <button
-                    type="button"
-                    className="min-w-0 flex-1 text-left"
-                    onClick={() => openEdit(item)}
-                  >
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
-                      <span
-                        className={cn(
-                          "text-sm font-medium",
-                          item.done && "line-through decoration-muted-foreground"
-                        )}
-                      >
-                        {item.title}
-                      </span>
-                      <span
-                        className={cn(
-                          "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                          item.kind === "task"
-                            ? "bg-gold/15 text-gold"
-                            : "bg-sky-500/15 text-sky-600 dark:text-sky-400"
-                        )}
-                      >
-                        {item.kind === "task" ? (
-                          <ListChecks className="h-3 w-3" />
-                        ) : (
-                          <CalendarClock className="h-3 w-3" />
-                        )}
-                        {item.kind === "task" ? "задание" : "событие"}
-                      </span>
-                    </div>
-                    <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-                      {item.time ? <span>{item.time}</span> : null}
-                      {item.place ? (
-                        <span className="inline-flex items-center gap-1">
-                          <MapPin className="h-3 w-3" /> {item.place}
-                        </span>
-                      ) : null}
-                      {linked ? (
-                        <span className="truncate">
-                          Дело: {linked.defender}
-                          {linked.caseNumber ? ` · № ${linked.caseNumber}` : ""}
-                        </span>
-                      ) : (
-                        <span>без дела</span>
+          <div className="space-y-4">
+            {weekGroups
+              .filter((group) => group.items.length > 0)
+              .map(({ day, key, items }) => (
+                <div key={key} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <h3
+                      className={cn(
+                        "text-xs font-semibold uppercase tracking-wide",
+                        isToday(day) ? "text-gold" : "text-muted-foreground"
                       )}
-                    </div>
-                    {item.notes ? (
-                      <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{item.notes}</p>
+                    >
+                      {format(day, "EEEEEE, d MMMM", { locale: ru })}
+                    </h3>
+                    {isToday(day) ? (
+                      <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gold">
+                        сегодня
+                      </span>
                     ) : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
+                  </div>
+                  <ul className="space-y-2">
+                    {items.map((item) => (
+                      <ItemRow
+                        key={item.id}
+                        item={item}
+                        linked={item.caseId ? caseById.get(item.caseId) : undefined}
+                        onToggle={toggleDone}
+                        onEdit={openEdit}
+                      />
+                    ))}
+                  </ul>
+                </div>
+              ))}
+          </div>
         )}
       </section>
 
