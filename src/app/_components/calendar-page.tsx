@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import { deleteTask, saveTask, useAppData } from "@/lib/store";
 import type { CaseFile, ItemKind, TaskItem } from "@/lib/types";
@@ -118,12 +117,10 @@ function MiniMonth({
 function ItemRow({
   item,
   linked,
-  onToggle,
   onEdit,
 }: {
   item: TaskItem;
   linked?: CaseFile;
-  onToggle: (item: TaskItem) => void;
   onEdit: (item: TaskItem) => void;
 }) {
   return (
@@ -133,12 +130,6 @@ function ItemRow({
         item.done && "opacity-60"
       )}
     >
-      <Checkbox
-        checked={item.done}
-        onCheckedChange={() => onToggle(item)}
-        aria-label="Отметить выполненным"
-        className="mt-0.5 h-5 w-5"
-      />
       <button
         type="button"
         className="min-w-0 flex-1 text-left"
@@ -259,16 +250,6 @@ export function CalendarPage() {
   );
 
   const undoneCount = weekItems.filter((t) => !t.done).length;
-
-  const toggleDone = (item: TaskItem) => {
-    saveTask({
-      ...item,
-      done: !item.done,
-      doneAt: !item.done ? new Date().toISOString() : undefined,
-      updatedAt: new Date().toISOString(),
-    });
-    if (!item.done) toast.success(item.kind === "task" ? "Задание выполнено" : "Событие отмечено");
-  };
 
   const openNew = () => {
     setEditing(null);
@@ -516,7 +497,6 @@ export function CalendarPage() {
                         key={item.id}
                         item={item}
                         linked={item.caseId ? caseById.get(item.caseId) : undefined}
-                        onToggle={toggleDone}
                         onEdit={openEdit}
                       />
                     ))}
