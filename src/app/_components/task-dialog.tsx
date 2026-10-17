@@ -43,6 +43,7 @@ const EMPTY_FORM = {
   place: "",
   caseId: "none",
   notes: "",
+  done: false,
 };
 
 export function TaskDialog({
@@ -68,6 +69,7 @@ export function TaskDialog({
         place: initial.place ?? "",
         caseId: initial.caseId ?? "none",
         notes: initial.notes ?? "",
+        done: initial.done,
       });
     } else {
       setForm({ ...EMPTY_FORM, date: defaultDate });
@@ -95,7 +97,7 @@ export function TaskDialog({
       place: form.place.trim() || undefined,
       notes: form.notes.trim() || undefined,
       caseId: form.caseId === "none" ? null : form.caseId,
-      done: initial?.done ?? false,
+      done: form.done,
       doneAt: initial?.doneAt,
       createdAt: initial?.createdAt ?? now,
       updatedAt: now,
@@ -210,6 +212,19 @@ export function TaskDialog({
                 value={form.notes}
                 onChange={(e) => patch({ notes: e.target.value })}
               />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input
+                id="item-done"
+                type="checkbox"
+                checked={form.done}
+                onChange={(e) => patch({ done: e.target.checked })}
+                className="h-4 w-4 rounded border-muted-foreground text-primary focus:ring-primary"
+              />
+              <Label htmlFor="item-done" className="cursor-pointer text-sm font-normal">
+                Выполнено
+              </Label>
             </div>
           </div>
 
