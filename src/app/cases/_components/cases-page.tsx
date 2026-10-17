@@ -207,7 +207,7 @@ export function CasesPage() {
               {viewing.phone ? (
                 <Button variant="outline" asChild>
                   <a href={`tel:${viewing.phone.replace(/[^+\d]/g, "")}`}>
-                    <Phone /> Позвонить дознавателю/следователю/секретарю судьи
+                    <Phone /> дознавателю/следователю/в суд
                   </a>
                 </Button>
               ) : null}
