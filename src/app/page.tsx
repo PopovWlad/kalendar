@@ -1,5 +1,5 @@
-import { CalendarPage } from "./_components/calendar-page";
+import { ClientCalendarPage } from "./_components/client-calendar-page";
 
 export default function Home() {
-  return <CalendarPage />;
+  return <ClientCalendarPage />;
 }
