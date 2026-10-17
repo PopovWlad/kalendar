@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Briefcase, CalendarDays, FileText, Scale, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SettingsSheet } from "@/components/settings-sheet";
@@ -23,6 +24,32 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const title = TITLES[pathname] ?? "Ежедневник";
+
+  // Напоминание о резервной копии раз в 7 дней
+  useEffect(() => {
+    const reminded = sessionStorage.getItem("adv-backup-reminded");
+    if (reminded) return;
+    const reminderOn = localStorage.getItem("adv-backup-reminder") !== "disabled";
+    if (!reminderOn) return;
+    const lastBackup = localStorage.getItem("adv-last-backup");
+    if (lastBackup) {
+      const daysSince = (Date.now() - new Date(lastBackup).getTime()) / 86_400_000;
+      if (daysSince < 7) return;
+    }
+    sessionStorage.setItem("adv-backup-reminded", "1");
+    // Небольшая задержка, чтобы не мешать первоначальной загрузке
+    const timer = setTimeout(() => {
+      toast("Не забудьте сохранить резервную копию", {
+        description: "Откройте Настройки → «Сохранить в файл»",
+        action: {
+          label: "Настройки",
+          onClick: () => setSettingsOpen(true),
+        },
+        duration: 10_000,
+      });
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-2xl flex-col border-x bg-background">
