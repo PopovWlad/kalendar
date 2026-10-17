@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   addDays,
   addMonths,
@@ -45,12 +45,14 @@ function MiniMonth({
   month,
   byDate,
   selected,
+  hydrated,
   onPick,
   onOpenMonth,
 }: {
   month: Date;
   byDate: Map<string, DayStats>;
   selected: string;
+  hydrated: boolean;
   onPick: (dateKey: string) => void;
   onOpenMonth: (month: Date) => void;
 }) {
@@ -87,7 +89,7 @@ function MiniMonth({
                 isSelected
                   ? "bg-primary font-semibold text-primary-foreground"
                   : "hover:bg-accent",
-                isToday(day) && !isSelected && "ring-1 ring-inset ring-gold"
+                hydrated && isToday(day) && !isSelected && "ring-1 ring-inset ring-gold"
               )}
             >
               {day.getDate()}
@@ -186,8 +188,14 @@ function ItemRow({
 
 export function CalendarPage() {
   const { cases, tasks } = useAppData();
+  const [hydrated, setHydrated] = useState(false);
   const [cursor, setCursor] = useState(() => startOfMonth(new Date()));
   const [selected, setSelected] = useState(() => format(new Date(), "yyyy-MM-dd"));
+
+  // Без этого флага isToday может различаться на сервере и клиенте (разные часовые пояса,
+  // время ближе к полуночи), что вызывает ошибку гидратации.
+  // Пока гидратация не завершилась, «сегодня» не подсвечиваем.
+  useEffect(() => setHydrated(true), []);
   const [filter, setFilter] = useState<Filter>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<TaskItem | null>(null);
@@ -347,7 +355,7 @@ export function CalendarPage() {
                       isSelected
                         ? "bg-primary font-semibold text-primary-foreground"
                         : "hover:bg-accent",
-                      isToday(day) && !isSelected && "ring-1 ring-inset ring-gold"
+                      hydrated && isToday(day) && !isSelected && "ring-1 ring-inset ring-gold"
                     )}
                   >
                     <span>{day.getDate()}</span>
@@ -372,6 +380,7 @@ export function CalendarPage() {
                 month={m}
                 byDate={byDate}
                 selected={selected}
+                hydrated={hydrated}
                 onPick={openFromYear}
                 onOpenMonth={openMonthFromYear}
               />
@@ -480,12 +489,12 @@ export function CalendarPage() {
                     <h3
                       className={cn(
                         "text-xs font-semibold uppercase tracking-wide",
-                        isToday(day) ? "text-gold" : "text-muted-foreground"
+                        hydrated && isToday(day) ? "text-gold" : "text-muted-foreground"
                       )}
                     >
                       {format(day, "EEEEEE, d MMMM", { locale: ru })}
                     </h3>
-                    {isToday(day) ? (
+                    {hydrated && isToday(day) ? (
                       <span className="rounded-full bg-gold/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gold">
                         сегодня
                       </span>
