@@ -38,7 +38,7 @@ import {
 } from "@/components/pwa-register";
 
 const SYNC_ENDPOINT_KEY = "adv-sync-endpoint";
-const APP_VERSION = "0.1.0";
+const APP_VERSION = "0.2.0";
 
 function downloadBackup(data: AppData) {
   const stamp = new Date().toISOString().slice(0, 16).replace(/[:T]/g, "-");
